@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANDY - 個人投資概況儀表板</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary-purple: #7c3aed;
+            --primary-hover: #6d28d9;
+            --red-positive: #dc2626;
+            --red-bg: #fef2f2;
+            --green-negative: #16a34a;
+            --green-bg: #f0fdf4;
+            --border-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            padding: 16px 24px; 
+            min-height: 100vh;
+            zoom: 1.15; 
+        }
+
+        .container { max-width: 1280px; margin: 0 auto; }
+
+        .header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-icon { width: 34px; height: 34px; background: linear-gradient(135deg, #6d28d9, #7c3aed); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 16px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25); }
+        .header-title { font-size: 19px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
+        
+        .header-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .sync-time { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .currency-unit { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 10px -2px rgba(0,0,0,0.04); border: 1px solid rgba(226, 232, 240, 0.8); text-align: center; }
+        .card-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .card-num { font-size: 24px; font-weight: 800; color: var(--text-main); font-variant-numeric: tabular-nums; }
+        .card-num.positive { color: var(--red-positive); }
+        .card-num.negative { color: var(--green-negative); }
+
+        .main-card { background: var(--card-bg); border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 10px -2px rgba(0,0,0,0.04); border: 1px solid rgba(226, 232, 240, 0.8); }
+        
+        .action-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+        .section-title { font-size: 14px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+        .section-title::before { content: ''; width: 3px; height: 14px; background-color: var(--primary-purple); border-radius: 2px; }
+
+        .btn-sync { background-color: var(--primary-purple); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+        .btn-sync:hover { background-color: var(--primary-hover); }
+
+        .owner-badge { background-color: #f3e8ff; color: #6d28d9; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
+
+        .table-responsive { overflow: hidden; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { background-color: #f8fafc; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 7px 10px; border-bottom: 1px solid var(--border-color); text-align: right; }
+        th:first-child { text-align: left; border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+        th:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+
+        td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--border-color); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; color: #334155; }
+        td:first-child { text-align: left; }
+        tr:hover td { background-color: #f8fafc; }
+
+        .target-title { font-weight: 700; color: #0f172a; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .type-badge { font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; background-color: #e0f2fe; color: #0369a1; }
+
+        .positive { color: var(--red-positive); font-weight: 700; }
+        .negative { color: var(--green-negative); font-weight: 700; }
+
+        tfoot tr td { background-color: #f8fafc; font-weight: 800; font-size: 13px; border-top: 2px solid var(--border-color); border-bottom: none; color: #0f172a; padding: 8px 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-bar">
+        <div class="brand">
+            <div class="brand-icon">S</div>
+            <div class="header-title">SANDY — 個人股票投資概況表</div>
+        </div>
+        <div class="header-meta">
+            <div class="sync-time" id="sync-time">最後更新時間：2026/09/23 上午11:09</div>
+            <div class="currency-unit">單位：新台幣元</div>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <div class="card">
+            <div class="card-title">總投資成本 (NTD)</div>
+            <div class="card-num" id="card-total-cost">5,160,142 元</div>
+        </div>
+        <div class="card">
+            <div class="card-title">總當前市值 (NTD)</div>
+            <div class="card-num" id="card-total-market">4,942,444 元</div>
+        </div>
+        <div class="card">
+            <div class="card-title">總未實現損益 (NTD)</div>
+            <div class="card-num negative" id="card-total-profit">-217,698 元 (-4.22%)</div>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <div class="action-bar">
+            <div class="section-title">
+                股票庫存明細
+                <span class="owner-badge">SANDY 專屬</span>
+            </div>
+            <button class="btn-sync" onclick="fetchData()">
+                🔄 同步 Google 試算表資料
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>股票名稱</th>
+                        <th>庫存類別</th>
+                        <th>股數</th>
+                        <th>成交均價</th>
+                        <th>投資成本 (NTD)</th>
+                        <th>市價</th>
+                        <th>帳面價值 (NTD)</th>
+                        <th>損益 (NTD)</th>
+                        <th>損益率 (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- 預設載入明細 -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4">合計</td>
+                        <td id="foot-total-cost">5,160,142</td>
+                        <td>-</td>
+                        <td id="foot-total-market">4,942,444</td>
+                        <td id="foot-total-profit" class="negative">-217,698</td>
+                        <td id="foot-total-rate" class="negative">-4.22%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// 替換為最新部署的網頁應用程式 URL
+const API_URL = "https://script.google.com/macros/s/AKfycbzbc4MV3fBGwDUY1ImTSjJDXy1C2oxOd33XIvQOy73OMryxGT88BYlGcxQDClY6xJyu/exec";
+
+// 預設持股明細
+const defaultData = [
+    { name: "富鼎 (8261)", type: "現股", shares: 2000, avgPrice: 329.97, cost: 659938, price: 177.00, marketValue: 352435, profit: -307503, rate: -46.60 },
+    { name: "國巨 (2327)", type: "現股", shares: 700, avgPrice: 968.52, cost: 677962, price: 585.00, marketValue: 407690, profit: -270272, rate: -39.87 },
+    { name: "譜瑞-KY (4966)", type: "現股", shares: 500, avgPrice: 854.21, cost: 427107, price: 566.00, marketValue: 281749, profit: -145358, rate: -34.03 },
+    { name: "華城 (1519)", type: "現股", shares: 300, avgPrice: 1000.14, cost: 300043, price: 711.00, marketValue: 212357, profit: -87686, rate: -29.22 },
+    { name: "威剛 (3260)", type: "現股", shares: 1000, avgPrice: 434.12, cost: 434117, price: 384.50, marketValue: 382801, profit: -51316, rate: -11.82 },
+    { name: "強茂 (2481)", type: "現股", shares: 1500, avgPrice: 191.61, cost: 287408, price: 175.00, marketValue: 261340, profit: -26068, rate: -9.07 },
+    { name: "南茂 (8150)", type: "現股", shares: 3000, avgPrice: 111.16, cost: 333473, price: 107.50, marketValue: 321075, profit: -12398, rate: -3.72 },
+    { name: "緯創 (3231)", type: "現股", shares: 1000, avgPrice: 185.26, cost: 185263, price: 180.50, marketValue: 179702, profit: -5561, rate: -3.00 },
+    { name: "主動統一台股增長 (00981A)", type: "現股", shares: 9000, avgPrice: 28.66, cost: 257895, price: 30.70, marketValue: 275079, profit: 17184, rate: 6.66 },
+    { name: "元大台灣50正2 (00631L)", type: "現股", shares: 7000, avgPrice: 35.61, cost: 249283, price: 39.16, marketValue: 272908, profit: 23625, rate: 9.48 },
+    { name: "凱基金融TOP50 (009816)", type: "現股", shares: 26437, avgPrice: 13.65, cost: 360866, price: 16.63, marketValue: 437704, profit: 76838, rate: 21.29 },
+    { name: "台積電 (2330)", type: "現股", shares: 210, avgPrice: 1858.06, cost: 390193, price: 2495.00, marketValue: 521634, profit: 131441, rate: 33.69 },
+    { name: "元大台灣50 (0050)", type: "現股", shares: 9229, avgPrice: 64.64, cost: 596594, price: 112.75, marketValue: 1035970, profit: 439376, rate: 73.65 }
+];
+
+function renderTable(items, updateTimeStr) {
+    const tbody = document.getElementById("table-body");
+    tbody.innerHTML = "";
+
+    let grandTotalCost = 0;
+    let grandTotalMarketValue = 0;
+
+    items.forEach(item => {
+        const shares = parseFloat(item.shares) || 0;
+        const avgPrice = parseFloat(item.avgPrice) || 0;
+        const cost = parseFloat(item.cost) || 0;
+        const price = parseFloat(item.price) || 0;
+        const marketValue = parseFloat(item.marketValue) || (shares * price);
+        const profit = parseFloat(item.profit) || (marketValue - cost);
+        
+        let rate = parseFloat(item.rate) || 0;
+        if (Math.abs(rate) < 1 && cost > 0) {
+            rate = rate * 100;
+        }
+
+        grandTotalCost += cost;
+        grandTotalMarketValue += marketValue;
+
+        const profitClass = profit >= 0 ? 'positive' : 'negative';
+        const profitSign = profit >= 0 ? '+' : '';
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>
+                <div class="target-title">
+                    <span class="type-badge">股票</span>
+                    ${item.name}
+                </div>
+            </td>
+            <td>${item.type || '現股'}</td>
+            <td>${shares.toLocaleString()}</td>
+            <td>${avgPrice.toFixed(2)}</td>
+            <td>${Math.round(cost).toLocaleString()}</td>
+            <td>${price.toFixed(2)}</td>
+            <td>${Math.round(marketValue).toLocaleString()}</td>
+            <td class="${profitClass}">${profitSign}${Math.round(profit).toLocaleString()}</td>
+            <td class="${profitClass}">${profitSign}${rate.toFixed(2)}%</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    const grandTotalProfit = grandTotalMarketValue - grandTotalCost;
+    const grandTotalRate = grandTotalCost > 0 ? (grandTotalProfit / grandTotalCost) * 100 : 0;
+    const grandProfitSign = grandTotalProfit >= 0 ? '+' : '';
+    const grandProfitClass = grandTotalProfit >= 0 ? 'positive' : 'negative';
+
+    document.getElementById("card-total-cost").innerText = `${Math.round(grandTotalCost).toLocaleString()} 元`;
+    document.getElementById("card-total-market").innerText = `${Math.round(grandTotalMarketValue).toLocaleString()} 元`;
+    
+    const profitCard = document.getElementById("card-total-profit");
+    profitCard.innerText = `${grandProfitSign}${Math.round(grandTotalProfit).toLocaleString()} 元 (${grandProfitSign}${grandTotalRate.toFixed(2)}%)`;
+    profitCard.className = `card-num ${grandProfitClass}`;
+
+    document.getElementById("foot-total-cost").innerText = Math.round(grandTotalCost).toLocaleString();
+    document.getElementById("foot-total-market").innerText = Math.round(grandTotalMarketValue).toLocaleString();
+    
+    const footProfit = document.getElementById("foot-total-profit");
+    footProfit.innerText = `${grandProfitSign}${Math.round(grandTotalProfit).toLocaleString()}`;
+    footProfit.className = grandProfitClass;
+
+    const footRate = document.getElementById("foot-total-rate");
+    footRate.innerText = `${grandProfitSign}${grandTotalRate.toFixed(2)}%`;
+    footRate.className = grandProfitClass;
+
+    if (updateTimeStr) {
+        document.getElementById("sync-time").innerText = `最後更新時間：${updateTimeStr}`;
+    }
+}
+
+function handleData(data) {
+    if (data && data.items && data.items.length > 0) {
+        renderTable(data.items, data.updateDate);
+    }
+}
+
+function fetchData() {
+    renderTable(defaultData);
+
+    const oldScript = document.getElementById("jsonp-script");
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement("script");
+    script.id = "jsonp-script";
+    script.src = `${API_URL}?prefix=handleData`;
+    document.body.appendChild(script);
+}
+
+fetchData();
+</script>
+
+</body>
+</html>
