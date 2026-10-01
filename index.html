@@ -103,7 +103,7 @@
             <div class="header-title">SANDY — 個人股票投資概況表</div>
         </div>
         <div class="header-meta">
-            <div class="sync-time" id="sync-time">資料載入中...</div>
+            <div class="sync-time" id="sync-time">資料連線中...</div>
             <div class="currency-unit">單位：新台幣元</div>
         </div>
     </div>
@@ -170,10 +170,10 @@
 </div>
 
 <script>
-// 使用驗證完全正常的 Google Apps Script API (附帶 target=sandy 參數)
+// 帶有 target=sandy 參數的 API 網址
 const API_URL = "https://script.google.com/macros/s/AKfycbwtNcYquL7oNUpo3YUoee4pXJvNKsQUtRWMI_cMN98QjHcbCejvZQzpl3xHRDXxN15H1Q/exec?target=sandy";
 
-// 包含 和益(1709) 等共 14 檔最新預設持股
+// SANDY 專屬 14 檔預設資料 (包含 和益(1709))
 let currentItems = [
     { name: "富鼎 (8261)", type: "現股", shares: 2000, avgPrice: 329.97, cost: 659938, price: 182.50, marketValue: 365000, profit: -294938, rate: -44.69 },
     { name: "國巨 (2327)", type: "現股", shares: 700, avgPrice: 968.52, cost: 677962, price: 602.00, marketValue: 421400, profit: -256562, rate: -37.84 },
@@ -312,12 +312,9 @@ async function syncData() {
         renderTable(currentItems);
     } catch (e) {
         renderTable(currentItems);
-        const now = new Date();
-        document.getElementById("sync-time").innerText = `最後更新時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.toLocaleTimeString()}`;
     }
 }
 
-// 頁面開啟立即畫出 14 檔資料並執行連動
 renderTable(currentItems);
 syncData();
 </script>
