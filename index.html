@@ -100,7 +100,7 @@
             <div class="header-title">SANDY — 個人股票投資概況表</div>
         </div>
         <div class="header-meta">
-            <div class="sync-time" id="sync-time">資料同步中...</div>
+            <div class="sync-time" id="sync-time">資料載入中...</div>
             <div class="currency-unit">單位：新台幣元</div>
         </div>
     </div>
@@ -167,10 +167,10 @@
 </div>
 
 <script>
-// 使用最新部署的 API 網址
+// 切換至 SANDY 專屬 API (解決跨網域與抓錯標的的問題)
 const API_URL = "https://script.google.com/macros/s/AKfycbzbc4MV3fBGwDUY1ImTSjJDXy1C2oxOd33XIvQOy73OMryxGT88BYlGcxQDClY6xJyu/exec";
 
-// SANDY 專屬 14 檔預設備援資料
+// 包含 和益(1709) 等 14 檔最新標的預設資料
 let currentItems = [
     { name: "富鼎 (8261)", type: "現股", shares: 2000, avgPrice: 329.97, cost: 659938, price: 182.50, marketValue: 365000, profit: -294938, rate: -44.69 },
     { name: "國巨 (2327)", type: "現股", shares: 700, avgPrice: 968.52, cost: 677962, price: 602.00, marketValue: 421400, profit: -256562, rate: -37.84 },
@@ -294,7 +294,7 @@ function renderTable(items, updateTimeStr) {
     }
 }
 
-// 全域 JSONP 接收函式
+// 採用 JSONP 機制進行動態載入
 window.handleData = function(data) {
     if (data && data.items && data.items.length > 0) {
         currentItems = data.items;
@@ -315,7 +315,7 @@ function fetchData() {
     document.body.appendChild(script);
 }
 
-// 頁面開啟自動呼叫
+// 頁面開啟自動連線
 fetchData();
 </script>
 
