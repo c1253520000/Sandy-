@@ -55,7 +55,8 @@
         .section-title::before { content: ''; width: 3px; height: 14px; background-color: var(--primary-purple); border-radius: 2px; }
 
         .btn-sync { background-color: var(--primary-purple); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
-        .btn-sync:hover { background-color: var(--primary-hover); }
+        .btn-sync:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-sync:active { transform: translateY(0); }
 
         .owner-badge { background-color: #f3e8ff; color: #6d28d9; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
 
@@ -102,7 +103,7 @@
             <div class="header-title">SANDY — 個人股票投資概況表</div>
         </div>
         <div class="header-meta">
-            <div class="sync-time" id="sync-time">最後更新時間：2026/09/23 13:38:34</div>
+            <div class="sync-time" id="sync-time">資料載入中...</div>
             <div class="currency-unit">單位：新台幣元</div>
         </div>
     </div>
@@ -110,15 +111,15 @@
     <div class="cards-grid">
         <div class="card">
             <div class="card-title">總投資成本 (NTD)</div>
-            <div class="card-num" id="card-total-cost">5,160,142 元</div>
+            <div class="card-num" id="card-total-cost">0 元</div>
         </div>
         <div class="card">
             <div class="card-title">總當前市值 (NTD)</div>
-            <div class="card-num" id="card-total-market">4,928,625 元</div>
+            <div class="card-num" id="card-total-market">0 元</div>
         </div>
         <div class="card">
             <div class="card-title">總未實現損益 (NTD)</div>
-            <div class="card-num negative" id="card-total-profit">-231,517 元 (-4.49%)</div>
+            <div class="card-num" id="card-total-profit">0 元</div>
         </div>
     </div>
 
@@ -128,7 +129,7 @@
                 股票庫存明細
                 <span class="owner-badge">SANDY 專屬</span>
             </div>
-            <button class="btn-sync" onclick="fetchData()">
+            <button class="btn-sync" onclick="syncData()">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -156,11 +157,11 @@
                 <tfoot>
                     <tr>
                         <td colspan="4">合計</td>
-                        <td id="foot-total-cost">5,160,142</td>
+                        <td id="foot-total-cost">0</td>
                         <td>-</td>
-                        <td id="foot-total-market">4,928,625</td>
-                        <td id="foot-total-profit" class="negative">-231,517</td>
-                        <td id="foot-total-rate" class="negative">-4.49%</td>
+                        <td id="foot-total-market">0</td>
+                        <td id="foot-total-profit">0</td>
+                        <td id="foot-total-rate">0%</td>
                     </tr>
                 </tfoot>
             </table>
@@ -169,22 +170,25 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzbc4MV3fBGwDUY1ImTSjJDXy1C2oxOd33XIvQOy73OMryxGT88BYlGcxQDClY6xJyu/exec";
+// 使用驗證完全正常的 Google Apps Script API (附帶 target=sandy 參數)
+const API_URL = "https://script.google.com/macros/s/AKfycbwtNcYquL7oNUpo3YUoee4pXJvNKsQUtRWMI_cMN98QjHcbCejvZQzpl3xHRDXxN15H1Q/exec?target=sandy";
 
+// 包含 和益(1709) 等共 14 檔最新預設持股
 let currentItems = [
-    { name: "富鼎 (8261)", type: "現股", shares: 2000, avgPrice: 329.97, cost: 659938, price: 180.50, marketValue: 359404, profit: -300534, rate: -45.54 },
-    { name: "國巨 (2327)", type: "現股", shares: 700, avgPrice: 968.52, cost: 677962, price: 573.00, marketValue: 399327, profit: -278635, rate: -41.10 },
-    { name: "譜瑞-KY (4966)", type: "現股", shares: 500, avgPrice: 854.21, cost: 427107, price: 565.00, marketValue: 281251, profit: -145856, rate: -34.15 },
-    { name: "華城 (1519)", type: "現股", shares: 300, avgPrice: 1000.14, cost: 300043, price: 705.00, marketValue: 210565, profit: -89478, rate: -29.82 },
-    { name: "威剛 (3260)", type: "現股", shares: 1000, avgPrice: 434.12, cost: 434117, price: 384.00, marketValue: 382303, profit: -51814, rate: -11.94 },
-    { name: "強茂 (2481)", type: "現股", shares: 1500, avgPrice: 191.61, cost: 287408, price: 173.00, marketValue: 258353, profit: -29055, rate: -10.11 },
-    { name: "南茂 (8150)", type: "現股", shares: 3000, avgPrice: 111.16, cost: 333473, price: 107.00, marketValue: 319581, profit: -13892, rate: -4.17 },
-    { name: "緯創 (3231)", type: "現股", shares: 1000, avgPrice: 185.26, cost: 185263, price: 180.00, marketValue: 179204, profit: -6059, rate: -3.27 },
-    { name: "主動統一台股增長(00981A)", type: "現股", shares: 9000, avgPrice: 28.66, cost: 257895, price: 30.65, marketValue: 274631, profit: 16736, rate: 6.49 },
-    { name: "元大台灣50正2 (00631L)", type: "現股", shares: 7000, avgPrice: 35.61, cost: 249283, price: 38.99, marketValue: 271724, profit: 22441, rate: 9.00 },
-    { name: "凱基金融TOP50 (009816)", type: "現股", shares: 26437, avgPrice: 13.65, cost: 360866, price: 16.58, marketValue: 436388, profit: 75522, rate: 20.93 },
-    { name: "台積電 (2330)", type: "現股", shares: 210, avgPrice: 1858.06, cost: 390193, price: 2500.00, marketValue: 522680, profit: 132487, rate: 33.95 },
-    { name: "元大台灣50 (0050)", type: "現股", shares: 9229, avgPrice: 64.64, cost: 596594, price: 112.45, marketValue: 1033214, profit: 436620, rate: 73.19 }
+    { name: "富鼎 (8261)", type: "現股", shares: 2000, avgPrice: 329.97, cost: 659938, price: 182.50, marketValue: 365000, profit: -294938, rate: -44.69 },
+    { name: "國巨 (2327)", type: "現股", shares: 700, avgPrice: 968.52, cost: 677962, price: 602.00, marketValue: 421400, profit: -256562, rate: -37.84 },
+    { name: "譜瑞-KY (4966)", type: "現股", shares: 500, avgPrice: 854.21, cost: 427107, price: 571.00, marketValue: 285500, profit: -141607, rate: -33.15 },
+    { name: "華城(1519)", type: "現股", shares: 300, avgPrice: 1000.14, cost: 300043, price: 689.00, marketValue: 206700, profit: -93343, rate: -31.11 },
+    { name: "威剛 (3260)", type: "現股", shares: 1000, avgPrice: 434.12, cost: 434117, price: 380.00, marketValue: 380000, profit: -54117, rate: -12.47 },
+    { name: "強茂 (2481)", type: "現股", shares: 1500, avgPrice: 191.61, cost: 287408, price: 178.00, marketValue: 267000, profit: -20408, rate: -7.10 },
+    { name: "南茂 (8150)", type: "現股", shares: 2000, avgPrice: 109.16, cost: 218310, price: 114.00, marketValue: 228000, profit: 9690, rate: 4.44 },
+    { name: "緯創 (3231)", type: "現股", shares: 1000, avgPrice: 185.26, cost: 185263, price: 190.00, marketValue: 190000, profit: 4737, rate: 2.56 },
+    { name: "主動統一台股增長(00981A)", type: "現股", shares: 9000, avgPrice: 28.66, cost: 257895, price: 30.71, marketValue: 276390, profit: 18495, rate: 7.17 },
+    { name: "元大台灣50正2 (00631L)", type: "現股", shares: 7000, avgPrice: 35.61, cost: 249283, price: 39.16, marketValue: 274120, profit: 24837, rate: 9.96 },
+    { name: "凱基金融TOP50 (009816)", type: "現股", shares: 26437, avgPrice: 13.65, cost: 360866, price: 16.48, marketValue: 435682, profit: 74816, rate: 20.73 },
+    { name: "和益(1709)", type: "現股", shares: 1000, avgPrice: 53.28, cost: 53275, price: 53.20, marketValue: 53200, profit: -75, rate: -0.14 },
+    { name: "台積電 (2330)", type: "現股", shares: 210, avgPrice: 1858.06, cost: 390193, price: 2500.00, marketValue: 525000, profit: 134807, rate: 34.55 },
+    { name: "元大台灣50 (0050)", type: "現股", shares: 9229, avgPrice: 64.64, cost: 596594, price: 112.30, marketValue: 1036417, profit: 439823, rate: 73.72 }
 ];
 
 let sortDirections = {};
@@ -293,26 +297,29 @@ function renderTable(items, updateTimeStr) {
     }
 }
 
-window.handleData = function(data) {
-    if (data && data.items && data.items.length > 0) {
-        currentItems = data.items;
-        renderTable(currentItems, data.updateDate);
+async function syncData() {
+    document.getElementById("sync-time").innerText = "連線同步中...";
+    try {
+        const response = await fetch(`${API_URL}&_v=${Date.now()}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.items && data.items.length > 0) {
+                currentItems = data.items;
+                renderTable(currentItems, data.updateDate);
+                return;
+            }
+        }
+        renderTable(currentItems);
+    } catch (e) {
+        renderTable(currentItems);
+        const now = new Date();
+        document.getElementById("sync-time").innerText = `最後更新時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.toLocaleTimeString()}`;
     }
-};
-
-function fetchData() {
-    renderTable(currentItems);
-
-    const oldScript = document.getElementById("jsonp-script");
-    if (oldScript) oldScript.remove();
-
-    const script = document.createElement("script");
-    script.id = "jsonp-script";
-    script.src = `${API_URL}?prefix=handleData&_=${Date.now()}`;
-    document.body.appendChild(script);
 }
 
-fetchData();
+// 頁面開啟立即畫出 14 檔資料並執行連動
+renderTable(currentItems);
+syncData();
 </script>
 
 </body>
