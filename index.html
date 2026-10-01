@@ -14,9 +14,7 @@
             --primary-purple: #7c3aed;
             --primary-hover: #6d28d9;
             --red-positive: #dc2626;
-            --red-bg: #fef2f2;
             --green-negative: #16a34a;
-            --green-bg: #f0fdf4;
             --border-color: #e2e8f0;
         }
 
@@ -55,8 +53,7 @@
         .section-title::before { content: ''; width: 3px; height: 14px; background-color: var(--primary-purple); border-radius: 2px; }
 
         .btn-sync { background-color: var(--primary-purple); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
-        .btn-sync:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-        .btn-sync:active { transform: translateY(0); }
+        .btn-sync:hover { background-color: var(--primary-hover); }
 
         .owner-badge { background-color: #f3e8ff; color: #6d28d9; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
 
@@ -103,7 +100,7 @@
             <div class="header-title">SANDY — 個人股票投資概況表</div>
         </div>
         <div class="header-meta">
-            <div class="sync-time" id="sync-time">資料連線中...</div>
+            <div class="sync-time" id="sync-time">資料同步中...</div>
             <div class="currency-unit">單位：新台幣元</div>
         </div>
     </div>
@@ -129,7 +126,7 @@
                 股票庫存明細
                 <span class="owner-badge">SANDY 專屬</span>
             </div>
-            <button class="btn-sync" onclick="syncData()">
+            <button class="btn-sync" onclick="fetchData()">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -170,10 +167,10 @@
 </div>
 
 <script>
-// 帶有 target=sandy 參數的 API 網址
-const API_URL = "https://script.google.com/macros/s/AKfycbwtNcYquL7oNUpo3YUoee4pXJvNKsQUtRWMI_cMN98QjHcbCejvZQzpl3xHRDXxN15H1Q/exec?target=sandy";
+// 使用最新部署的 API 網址
+const API_URL = "https://script.google.com/macros/s/AKfycbzbc4MV3fBGwDUY1ImTSjJDXy1C2oxOd33XIvQOy73OMryxGT88BYlGcxQDClY6xJyu/exec";
 
-// SANDY 專屬 14 檔預設資料 (包含 和益(1709))
+// SANDY 專屬 14 檔預設備援資料
 let currentItems = [
     { name: "富鼎 (8261)", type: "現股", shares: 2000, avgPrice: 329.97, cost: 659938, price: 182.50, marketValue: 365000, profit: -294938, rate: -44.69 },
     { name: "國巨 (2327)", type: "現股", shares: 700, avgPrice: 968.52, cost: 677962, price: 602.00, marketValue: 421400, profit: -256562, rate: -37.84 },
@@ -297,26 +294,29 @@ function renderTable(items, updateTimeStr) {
     }
 }
 
-async function syncData() {
-    document.getElementById("sync-time").innerText = "連線同步中...";
-    try {
-        const response = await fetch(`${API_URL}&_v=${Date.now()}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data && data.items && data.items.length > 0) {
-                currentItems = data.items;
-                renderTable(currentItems, data.updateDate);
-                return;
-            }
-        }
-        renderTable(currentItems);
-    } catch (e) {
-        renderTable(currentItems);
+// 全域 JSONP 接收函式
+window.handleData = function(data) {
+    if (data && data.items && data.items.length > 0) {
+        currentItems = data.items;
+        renderTable(currentItems, data.updateDate);
     }
+};
+
+function fetchData() {
+    document.getElementById("sync-time").innerText = "資料同步中...";
+    renderTable(currentItems);
+
+    const oldScript = document.getElementById("jsonp-script");
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement("script");
+    script.id = "jsonp-script";
+    script.src = `${API_URL}?prefix=handleData&_=${Date.now()}`;
+    document.body.appendChild(script);
 }
 
-renderTable(currentItems);
-syncData();
+// 頁面開啟自動呼叫
+fetchData();
 </script>
 
 </body>
